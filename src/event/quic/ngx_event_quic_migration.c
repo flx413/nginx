@@ -215,7 +215,8 @@ valid:
 
     ngx_quic_path_dbg(c, "is validated", path);
 
-    ngx_quic_discover_path_mtu(c, path);
+    // TODO: test
+    //ngx_quic_discover_path_mtu(c, path);
 
     return NGX_OK;
 }
