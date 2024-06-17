@@ -350,6 +350,9 @@ ngx_quic_set_path(ngx_connection_t *c, ngx_quic_header_t *pkt)
         return NGX_DONE;
     }
 
+    if (probe) {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_set_path 1, probe->seq:%uL, addr:%V", probe->seqnum, probe->addr_text);
+    }
     if (probe && ngx_quic_free_path(c, probe) != NGX_OK) {
         return NGX_ERROR;
     }
@@ -411,6 +414,8 @@ ngx_quic_free_path(ngx_connection_t *c, ngx_quic_path_t *path)
     ngx_queue_remove(&path->queue);
     ngx_queue_insert_head(&qc->free_paths, &path->queue);
 
+    ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log ngx_quic_free_path, seq:%uL", path->seqnum);
+    
     /*
      * invalidate CID that is no longer usable for any other path;
      * this also requests new CIDs from client
@@ -491,7 +496,9 @@ ngx_quic_handle_migration(ngx_connection_t *c, ngx_quic_header_t *pkt)
         if (next->tag != NGX_QUIC_PATH_BACKUP) {
             /* can delete backup path, if any */
             bkp = ngx_quic_get_path(c, NGX_QUIC_PATH_BACKUP);
-
+            if (bkp) {
+                ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_handle_migration 1, bkp->seq:%uL, addr:%V", bkp->seqnum, &bkp->addr_text);
+            }
             if (bkp && ngx_quic_free_path(c, bkp) != NGX_OK) {
                 return NGX_ERROR;
             }
@@ -501,6 +508,7 @@ ngx_quic_handle_migration(ngx_connection_t *c, ngx_quic_header_t *pkt)
         ngx_quic_path_dbg(c, "is now backup", qc->path);
 
     } else {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_handle_migration 2, qc->path->seq:%uL, addr:%V", qc->path->seqnum, &qc->path->addr_text);
         if (ngx_quic_free_path(c, qc->path) != NGX_OK) {
             return NGX_ERROR;
         }

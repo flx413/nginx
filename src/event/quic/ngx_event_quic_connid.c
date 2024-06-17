@@ -83,6 +83,7 @@ ngx_quic_handle_new_connection_id_frame(ngx_connection_t *c,
     qc = ngx_quic_get_connection(c);
 
     if (f->seqnum < qc->max_retired_seqnum) {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_handle_new_connection_id_frame 1, f->seqnum:%uL, qc->max_retired_seqnum:%uL", f->seqnum, qc->max_retired_seqnum);
         /*
          * RFC 9000, 19.15.  NEW_CONNECTION_ID Frame
          *
@@ -177,6 +178,7 @@ retire:
             continue;
         }
 
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_handle_new_connection_id_frame 2, seq:%uL", cid->seqnum);
         if (ngx_quic_retire_client_id(c, cid) != NGX_OK) {
             return NGX_ERROR;
         }
@@ -214,6 +216,7 @@ ngx_quic_retire_client_id(ngx_connection_t *c, ngx_quic_client_id_t *cid)
     qc = ngx_quic_get_connection(c);
 
     if (!cid->used) {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_retire_client_id 1, seq:%uL", cid->seqnum);
         return ngx_quic_free_client_id(c, cid);
     }
 
@@ -240,9 +243,11 @@ ngx_quic_retire_client_id(ngx_connection_t *c, ngx_quic_client_id_t *cid)
             qc->path->cid = new_cid;
             new_cid->used = 1;
 
+            ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_retire_client_id 2, seq:%uL", cid->seqnum);
             return ngx_quic_free_client_id(c, cid);
         }
 
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: ngx_quic_retire_client_id 3, seq:%uL", cid->seqnum);
         return ngx_quic_free_path(c, path);
     }
 
@@ -322,7 +327,8 @@ ngx_quic_next_client_id(ngx_connection_t *c)
     ngx_queue_t            *q;
     ngx_quic_client_id_t   *cid;
     ngx_quic_connection_t  *qc;
-
+    ngx_quic_client_id_t *fallback_cid;
+    fallback_cid = NULL;
     qc = ngx_quic_get_connection(c);
 
     for (q = ngx_queue_head(&qc->client_ids);
@@ -332,8 +338,18 @@ ngx_quic_next_client_id(ngx_connection_t *c)
         cid = ngx_queue_data(q, ngx_quic_client_id_t, queue);
 
         if (!cid->used) {
+            ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0,
+                   "test log: use seqnum:%uL, cid:%*xs", cid->seqnum, NGX_QUIC_SR_TOKEN_LEN, cid->sr_token);
             return cid;
+        } else {
+            //fallback_cid = cid;
         }
+    }
+
+    if (fallback_cid != NULL) {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0,
+                   "test log: use fallback_cid, seqnum:%uL, cid:%*xs", fallback_cid->seqnum, NGX_QUIC_SR_TOKEN_LEN, fallback_cid->sr_token);
+        return fallback_cid;
     }
 
     return NULL;
@@ -497,6 +513,8 @@ ngx_quic_free_client_id(ngx_connection_t *c, ngx_quic_client_id_t *cid)
     ngx_queue_insert_head(&qc->free_client_ids, &cid->queue);
 
     qc->nclient_ids--;
+
+    ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log ngx_quic_free_client_id, seq:%uL, nclient_ids:%uL", cid->seqnum, qc->nclient_ids);
 
     return NGX_OK;
 }
