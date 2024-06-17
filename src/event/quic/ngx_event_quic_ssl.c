@@ -337,6 +337,8 @@ ngx_quic_handle_crypto_frame(ngx_connection_t *c, ngx_quic_header_t *pkt,
         return NGX_ERROR;
     }
 
+    ngx_log_debug2(NGX_LOG_DEBUG_EVENT, c->log, 0,
+                "test log: ngx_quic_handle_crypto_frame last:%uL, ctx->crypto.offset:%uL", last, ctx->crypto.offset);
     if (last <= ctx->crypto.offset) {
         if (pkt->level == ssl_encryption_initial) {
             /* speeding up handshake completion */

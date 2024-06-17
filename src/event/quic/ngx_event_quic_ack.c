@@ -570,6 +570,8 @@ ngx_quic_resend_frames(ngx_connection_t *c, ngx_quic_send_ctx_t *ctx)
     pnum = start->pnum;
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0,
+                   "test log: ngx_quic_resend_frames ctx level:%d", ctx->level);
+    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, c->log, 0,
                    "quic resend packet pnum:%uL", start->pnum);
 
     ngx_quic_congestion_lost(c, start);
@@ -584,6 +586,9 @@ ngx_quic_resend_frames(ngx_connection_t *c, ngx_quic_send_ctx_t *ctx)
         q = ngx_queue_next(q);
 
         ngx_queue_remove(&f->queue);
+
+        ngx_log_debug3(NGX_LOG_DEBUG_EVENT, c->log, 0,
+                   "test log: ngx_quic_resend_frames f->type:%u, f->pnum:%uL, f->plen:%zu", f->type, f->pnum, f->plen);
 
         switch (f->type) {
         case NGX_QUIC_FT_ACK:

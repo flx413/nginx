@@ -889,6 +889,7 @@ ngx_quic_stream_recv(ngx_connection_t *c, u_char *buf, size_t size)
         if (qs->recv_state == NGX_QUIC_STREAM_RECV_DATA_RECVD
             && qs->recv_offset == qs->recv_final_size)
         {
+            ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: stream_id:%ld, NGX_QUIC_STREAM_RECV_DATA_READ", qs->id);
             qs->recv_state = NGX_QUIC_STREAM_RECV_DATA_READ;
         }
 
@@ -1249,12 +1250,14 @@ ngx_quic_handle_stream_frame(ngx_connection_t *c, ngx_quic_header_t *pkt,
     }
 
     if (qs == NGX_QUIC_STREAM_GONE) {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: stream_id:%ld, NGX_QUIC_STREAM_GONE", f->stream_id);
         return NGX_OK;
     }
 
     if (qs->recv_state != NGX_QUIC_STREAM_RECV_RECV
         && qs->recv_state != NGX_QUIC_STREAM_RECV_SIZE_KNOWN)
     {
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: stream_id:%ld, state:%d return", f->stream_id, qs->recv_state);
         return NGX_OK;
     }
 
@@ -1297,6 +1300,7 @@ ngx_quic_handle_stream_frame(ngx_connection_t *c, ngx_quic_header_t *pkt,
         && qs->recv.size == qs->recv_final_size)
     {
         qs->recv_state = NGX_QUIC_STREAM_RECV_DATA_RECVD;
+        ngx_log_debug(NGX_LOG_DEBUG_EVENT, c->log, 0, "test log: stream_id:%ld, NGX_QUIC_STREAM_RECV_DATA_RECVD", f->stream_id);
     }
 
     if (qs->connection == NULL) {
